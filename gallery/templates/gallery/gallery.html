@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h1>Image Gallery</h1>
+
+    <div id="gallery-grid" class="gallery-grid">
+        {% for image in images %}
+        <div class="image-thumbnail" onclick="showViewer('{{ image.image_url }}', '{{ image.width }}', '{{ image.height }}', '{{ image.tile_size }}', '{{ image.tile_overlap }}')">
+            <h3>{{ image.title }}</h3>
+            <p>Size: {{ image.width }}x{{ image.height }}</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div id="viewer-container" class="viewer-container">
+    <div class="close-button" onclick="hideViewer()">Close</div>
+    <div id="viewer"></div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .gallery-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1rem;
+        padding: 1rem;
+    }
+    .image-thumbnail {
+        cursor: pointer;
+        padding: 1rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        background: white;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .viewer-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.9);
+        display: none;
+        z-index: 1000;
+    }
+    #viewer {
+        width: 100%;
+        height: 100%;
+    }
+    .close-button {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        color: white;
+        font-size: 18px;
+        cursor: pointer;
+        z-index: 1001;
+        background: rgba(0, 0, 0, 0.7);
+        padding: 10px 20px;
+        border-radius: 4px;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/openseadragon/4.1.0/openseadragon.min.js"></script>
+<script>
+    let viewer = null;
+
+    function showViewer(imageUrl, width, height, tileSize, overlap) {
+        document.querySelector('.viewer-container').style.display = 'block';
+        
+        if (viewer) {
+            viewer.destroy();
+        }
+
+        viewer = OpenSeadragon({
+            id: "viewer",
+            prefixUrl: "https://cdnjs.cloudflare.com/ajax/libs/openseadragon/4.1.0/images/",
+            tileSources: {
+                Image: {
+                    xmlns: "http://schemas.microsoft.com/deepzoom/2008",
+                    Url: imageUrl.replace('.dzi', '_files/'),
+                    Format: "jpg",
+                    Overlap: overlap,
+                    TileSize: tileSize,
+                    Size: {
+                        Width: width,
+                        Height: height
+                    }
+                }
+            }
+        });
+    }
+
+    function hideViewer() {
+        document.querySelector('.viewer-container').style.display = 'none';
+        if (viewer) {
+            viewer.destroy();
+            viewer = null;
+        }
+    }
+</script>
+{% endblock %}
